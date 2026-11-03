@@ -1,0 +1,32 @@
+'use client';
+import {Fragment,useState} from 'react';
+import {ChevronDown,FileText,CheckCircle2,AlertTriangle,Download} from 'lucide-react';
+import {getQuotationFacts} from '../lib/quotation-facts.mjs';
+import './quotation-table.css';
+const amount=(v:any,c:string|null|undefined,digits=2)=>v==null?'Not stated':`${c||'Currency unknown'} ${Number(v).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:digits})}`;
+const count=(v:any)=>v==null?'Not stated':Number(v).toLocaleString('en-SG');
+export default function QuotationTable({quotes,quantity,onReview,onChoose,onExport,recommendedQuoteId,approvedQuoteId}:{recommendedQuoteId?:string|number|null;approvedQuoteId?:string|number|null;quotes:any[];quantity:number;onReview:(i:number)=>void;onChoose:(i:number,id:string)=>void;onExport:()=>void}){
+ const[expanded,setExpanded]=useState<number|null>(null);
+ const rows=quotes.map(q=>({q,facts:getQuotationFacts(q,quantity)}));
+ const selected=expanded===null?null:rows[expanded];
+ const fields:Array<{name:string;note?:string;className?:string;render:(f:any,q:any)=>React.ReactNode}>=[
+  {name:'Unit price',render:f=><><strong className="facts-number">{amount(f?.unitPrice,f?.currency,4)}</strong><small>per unit{f?.priceUnit>1?` · ${amount(f.quotedPrice,f.currency,4)} / ${f.priceUnit} units`:''}</small></>},
+  {name:'Order quantity',note:`Net demand: ${count(quantity)}`,render:f=><><strong>{count(f?.orderQuantity)} units</strong><small>{f?.orderQuantity>quantity?`+${count(f.orderQuantity-quantity)} above demand`:f?.orderQuantity===quantity?'Meets net demand':'Confirm order quantity'}</small><small>MOQ {count(f?.moq)} · {f?.tier?.label||'No quantity tiers stated'}</small></>},
+  {name:'Goods value',render:f=><><strong>{amount(f?.goodsSubtotal,f?.currency)}</strong><small>{f?.goodsSubtotal!=null?`${count(f.orderQuantity)} × ${amount(f.unitPrice,f.currency,4)}`:'Quantity or price needs confirmation'}</small></>},
+  {name:'Delivery / freight',render:f=><><strong>{f?.freight?.amount===0?'Free':amount(f?.freight?.amount,f?.currency)}</strong>{f?.freight?.indicative&&<span className="facts-tag">Reference estimate</span>}<small>{f?.freight?.label||'Not priced in source'}</small></>},
+  {name:'Tax & trade terms',render:f=><><strong>{f?.tax?.label||'Not stated'}</strong>{f?.incoterm&&<small>{f.incoterm}</small>}</>},
+  {name:'Lead time',render:f=><><strong>{f?.leadTime||'Not stated'}</strong><small>{f?.arrival?`Arrival: ${f.arrival}`:'Arrival date not committed'}</small></>},
+  {name:'Quoted subtotal',note:'Identified costs only',className:'facts-total-row',render:f=><><strong className="facts-total">{f?.freight?.indicative?'≈ ':''}{amount(f?.knownSubtotal,f?.currency)}</strong><small>{f?.subtotalLabel||'Known costs only'}</small></>},
+  {name:'Conditions to confirm',className:'facts-conditions-row',render:f=><>{(f?.caveats||[]).slice(0,4).map((c:string)=><p key={c}>{c}</p>)}{f?.expiryDate&&f.expiryDate<new Date().toLocaleDateString('en-CA')&&<p className="facts-expired">Expired {f.expiryDate} · request a current quote.</p>}</>},
+ ];
+ return <section className="card quote-facts" aria-label="Extracted quotation comparison">
+  <div className="facts-heading"><div><span className="eyebrow">EXTRACTED FROM YOUR FILES</span><h2>Supplier comparison <span className="count-pill">{quotes.length} quotations</span></h2><p>Compare the same fields side by side. Every amount keeps its original currency and tax basis.</p></div><button className="button subtle small" onClick={onExport}><Download size={15}/>Export CSV</button></div>
+  <div className="facts-legend"><span><CheckCircle2 size={14}/>Source values extracted</span><span><AlertTriangle size={14}/>Estimates and missing costs labelled</span></div>
+  <div className="facts-scroll"><table className="facts-matrix" style={{minWidth:quotes.length>3?150+quotes.length*225:600}}><colgroup><col style={{width:quotes.length<=3?'18%':150}}/>{quotes.map((q,i)=><col key={q.id??i}/>)}</colgroup><thead><tr><th scope="col">QUOTATION DETAILS</th>{rows.map(({q,facts},i)=><th scope="col" key={q.id??i}><span className={'facts-format '+String(q.sourceFormat||'').toLowerCase()}>{q.sourceFormat||q.name?.split('.').pop()||'TEXT'}</span><strong className="facts-supplier">{facts.supplier}</strong>{q.id===approvedQuoteId?<span className="facts-recommendation approved">Approved for negotiation</span>:q.id===recommendedQuoteId?<span className="facts-recommendation">Recommended for review</span>:null}<p className="facts-product" title={facts.selected?.item}>{facts.selected?.item||'Product not identified'}</p><small className={facts.displayOnly?'facts-unmatched':'facts-match'}>{facts.displayOnly?'Specification needs confirmation':'Product matched'}</small><button className="facts-evidence-button" aria-expanded={expanded===i} onClick={()=>setExpanded(expanded===i?null:i)}><FileText size={12}/>{expanded===i?'Hide source details':'Source & price tiers'}<ChevronDown size={12}/></button></th>)}</tr></thead><tbody>
+  {fields.map(field=><tr key={field.name} className={field.className}><th scope="row">{field.name}{field.note&&<small>{field.note}</small>}</th>{rows.map(({q,facts},i)=><td key={q.id??i}>{field.render(facts.selected,q)}</td>)}</tr>)}
+  <tr className="facts-actions-row"><th scope="row">Source review</th>{quotes.map((q,i)=><td key={q.id??i}><button onClick={()=>onReview(i)}>Review extracted fields ↗</button></td>)}</tr>
+  </tbody></table></div>
+  {selected&&expanded!==null&&<div className="facts-details"><div><h3>All extracted product prices</h3><p>Select a row to use it in the comparison. The specification and quantity still need to match.</p><div className="facts-candidates">{(selected.q.candidates||[]).map((c:any)=><button key={c.id} className={selected.q.match?.selectedId===c.id?'selected':''} onClick={()=>onChoose(expanded,c.id)}><span>{c.values.item||'Unlabelled product'}</span><strong>{amount(c.values.price,c.values.currency,4)}{c.tier?.label?` · ${c.tier.label}`:''}</strong></button>)}</div></div><div><h3>Evidence from the source</h3><p>{selected.q.name}</p><dl>{Object.entries(selected.facts.selected?.evidence||{}).filter(([,v])=>v).map(([label,value])=><Fragment key={label}><dt>{label.replaceAll(/([A-Z])/g,' $1')}</dt><dd>{String(value)}</dd></Fragment>)}</dl></div></div>}
+  <div className="facts-foot"><b>Subtotal = goods + identified charges.</b><span>Import GST, insurance and unquoted charges may still apply. Align currencies and tax bases before ranking suppliers.</span></div>
+ </section>
+}

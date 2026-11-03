@@ -1,0 +1,22 @@
+From: demo@example.com
+Subject: Synthetic product prices
+Content-Type: text/plain; charset=utf-8
+
+Supplier: Cedar Trading
+Currency: SGD
+Cost basis: pre-tax
+Delivery charge: to be confirmed
+Other charges: 0
+Arrival date: 2026-11-17
+Units per quoted price: 1
+Order pack multiple: 50
+Minimum order: 1500
+
+Item: A4 copy paper 70gsm
+Price: S$5.00 per ream
+
+Item: A4 copy paper 80gsm
+Price: S$8.80 per ream
+
+Item: A3 copy paper 80gsm
+Price: S$12.00 per ream

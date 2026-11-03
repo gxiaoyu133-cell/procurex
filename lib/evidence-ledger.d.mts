@@ -1,0 +1,16 @@
+export const EVIDENCE_KEY:string;
+export const DELIVERY_OPTIONS:Record<string,string>;
+export function emptyEvidenceLedger():any;
+export function buildEvidenceBenchmark(quotes:any[],req:any,quoteId?:string|number):any;
+export function scoreEvidenceAnswers(benchmark:any,answers?:any):any;
+export function startEvidenceTrial(input:any):any;
+export function finishEvidencePhase(trial:any,input:any):any;
+export function startAssistedEvidencePhase(trial:any,now?:string):any;
+export function validateEvidenceTrial(trial:any,now?:string):any;
+export function validateSupplierEvidence(record:any,now?:string):any;
+export function createSupplierEvidence(input:any,now?:string):any;
+export function summariseEvidence(ledger:any,now?:string):any;
+export function readEvidenceLedger(storage:any):{ledger:any;error:string|null};
+export function saveEvidenceLedger(storage:any,ledger:any):string|null;
+export function exportEvidenceJSON(ledger:any,now?:string):string;
+export function exportEvidenceCSV(ledger:any,now?:string):string;

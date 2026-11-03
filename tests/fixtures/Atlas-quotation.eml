@@ -1,0 +1,15 @@
+From: supplier@example.com
+Subject: Synthetic quotation
+Content-Type: text/plain; charset=utf-8
+
+Supplier: Atlas Supply
+Item: A4 copy paper 80gsm, ream of 500 sheets
+Currency: SGD
+Cost basis: pre-tax
+Price: S$9.50 per ream
+Units per quoted price: 1
+Order pack multiple: 10 reams
+Minimum order: 100 reams
+Delivery charge: S$800
+Other charges: S$0
+Arrival date: 2026-11-09

@@ -1,0 +1,9 @@
+export const fields:string[];
+export const labels:Record<string,string>;
+export function addDays(date:string,n:number):string;
+export function evaluateQuote(q:any,req:any,offset?:number):any;
+export function compare(quotes:any[],req:any,offset?:number):any;
+export function csvCell(x:any):string;
+export function exportCSV(quotes:any[],req:any,offset?:number):string;
+export const samples:any[];
+export function demoQuotes():any[];
