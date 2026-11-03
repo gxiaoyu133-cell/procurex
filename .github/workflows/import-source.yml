@@ -1,0 +1,34 @@
+name: Import complete source
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/import-source.yml]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Expand verified source archive
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          import zipfile
+          archive = Path("ProcureX_Source_Code.zip")
+          with zipfile.ZipFile(archive) as source:
+              for entry in source.infolist():
+                  name = Path(entry.filename)
+                  if name.is_absolute() or ".." in name.parts or ".git" in name.parts:
+                      raise RuntimeError("Unsafe archive path")
+              source.extractall(".")
+          archive.unlink()
+          Path(".github/workflows/import-source.yml").unlink()
+          PYCODE
+      - name: Commit source files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import complete ProcureX application and tests"
+          git push
