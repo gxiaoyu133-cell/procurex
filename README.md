@@ -1,5 +1,11 @@
 # ProcureX
 
+## [Open the live demo →](https://gxiaoyu133-cell.github.io/procurex/)
+
+No installation or login is required. Click **Load demo**, confirm the comparison, review and approve the supplier, then try **Negotiation plan** and **Act History**.
+
+The public website runs quotation parsing, comparison and human review in your browser. Negotiation is clearly labelled **Practice simulation**: it makes no live AI calls and sends no supplier messages. The optional real Claude drafting workflow remains available in the local version below. Uploaded files and local records are not published to this repository.
+
 ProcureX is an AI-assisted procurement prototype for SME purchasing teams. It extracts useful commercial information from supplier quotations, displays an evidence-backed comparison, requires human review, and helps prepare a negotiation message.
 
 ## What works
@@ -56,6 +62,8 @@ npm test
 npm run build:local
 npm run local
 ```
+
+To rebuild the static public demo, run `npm run build:public`. The `public-demo/` output is deployed by the GitHub Pages workflow and uses the `/procurex/` base path. Keep the public-demo mode flag enabled: this hosting has no Claude backend or server secrets.
 
 The local build uses React and esbuild. `npm test` runs the Node test suite, including parser fixtures, price-tier selection, comparison safeguards, human-review revision gates, evidence-ledger rules and the live-agent protocol with a mocked provider. On 3 November 2026, the audited source passed **150 tests**. This is automated functional coverage, not proof that every possible document layout is supported or that external model availability is guaranteed.
 

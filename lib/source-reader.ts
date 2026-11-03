@@ -226,9 +226,10 @@ export async function readQuotationFile(file: File): Promise<QuotationSource> {
   if (['csv', 'tsv'].includes(extension || '')) return {format:'spreadsheet',text:delimitedText(await file.arrayBuffer(), extension!)};
   if (extension === 'txt') return {format:'text',text:checkedText(await file.text())};
   if (extension === 'pdf') {
-    const modulePath = '/vendor/pdf.mjs';
+    const assetBase = globalThis.document?.baseURI || globalThis.location?.href || 'http://localhost/';
+    const modulePath = new URL('vendor/pdf.mjs', assetBase).href;
     const pdfjs = await import(/* @vite-ignore */ modulePath);
-    pdfjs.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.mjs';
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL('vendor/pdf.worker.mjs', assetBase).href;
     const document = await pdfjs.getDocument({data: await file.arrayBuffer(), isEvalSupported: false}).promise;
     try {
       if (document.numPages > 30) throw new Error('Use a quotation with 30 pages or fewer.');
