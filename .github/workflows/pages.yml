@@ -1,1 +1,55 @@
-
+name: Publish ProcureX public demo
+on:
+  push:
+    branches: [main]
+    paths:
+      - public-demo/**
+      - ProcureX_Public_Demo_Update.zip
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply verified demo update
+        shell: bash
+        run: |
+          if [ -f ProcureX_Public_Demo_Update.zip ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import zipfile, hashlib
+          archive = Path('ProcureX_Public_Demo_Update.zip')
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == '70e02a4b659995f69d5417e2b9513b68165319d7e7a63449b4cf2cf5cc23b0eb'
+          root = Path.cwd().resolve()
+          with zipfile.ZipFile(archive) as z:
+              for info in z.infolist():
+                  target = (root / info.filename).resolve()
+                  assert target.is_relative_to(root) and not info.filename.startswith(('.', '/'))
+                  assert info.file_size < 10000000
+              z.extractall(root)
+          archive.unlink()
+          PY
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            git commit -m 'Publish verified public demo and keep source entry point'
+            git push
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: public-demo
+      - name: Deploy public demo
+        id: deployment
+        uses: actions/deploy-pages@v4
